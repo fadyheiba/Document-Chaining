@@ -20,7 +20,7 @@ define(['jquery', 'qlik', 'angular', 'ng!$q', 'css!./FEI-DocumentChaining.css'],
                         sheetID: {
                             ref: "sheetID",
                             type: "string",
-                            label: "App ID",
+                            label: "Sheet ID",
                             defaultValue: "ChEKGhw",
                             show: true
                         },
@@ -48,7 +48,7 @@ define(['jquery', 'qlik', 'angular', 'ng!$q', 'css!./FEI-DocumentChaining.css'],
                             ref: "urlResolver",
                             type: "string",
                             label: "URL Resolver Mashup Link",
-                            defaultValue: "extensions/FEI-DocumentChainingURLResolver/FEI-DocumentChainingURLResolver.html"
+                            defaultValue: "extensions/FEI-DocumentChaining/FEI-DocumentChainingURLResolver/FEI-DocumentChainingURLResolver.html"
                         }
                     }
                 }
