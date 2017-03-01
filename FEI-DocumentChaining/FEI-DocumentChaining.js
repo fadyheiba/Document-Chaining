@@ -30,6 +30,36 @@ define(['jquery', 'qlik', 'angular', 'ng!$q', 'css!./FEI-DocumentChaining.css'],
                             label: "Button Label",
                             defaultValue: "2013",
                             show: true
+                        },
+                        carrySelections: {
+                            ref: "carrySelections",
+                            component: "switch",
+                            type: "boolean",
+                            label: "Carry Selections",
+                            options: [{
+                                value: true,
+                                label: "On"
+                            },{
+                                value: false,
+                                label: "Off"
+                            }],
+                            defaultValue: true,
+                            show: true
+                        },
+                        sameOrNewTab: {
+                            ref: "sameOrNewTab",
+                            component: "switch",
+                            type: "boolean",
+                            label: "Redirect to Same or New Tab",
+                            options: [{
+                                value: true,
+                                label: "New Tab"
+                            },{
+                                value: false,
+                                label: "Same Tab"
+                            }],
+                            defaultValue: true,
+                            show: true
                         }
                     }
                 },
@@ -106,7 +136,7 @@ define(['jquery', 'qlik', 'angular', 'ng!$q', 'css!./FEI-DocumentChaining.css'],
             var baseURL = (config.isSecure ? "https://" : "http://" ) + config.host + (config.port ? ":" + config.port : "" ) + "/sense/app/" + applicationIdFr + "/sheet/" + SheetID + "/state/analysis/options/clearselections";
 
 
-            var buttonHTMLCode = '<button name="'+'"GenerateDashboardLink'+layout.qInfo.qId+'" id="generateDashboardLink'+ layout.qInfo.qId + '" class="documentChaining">'+layout.documentName+'</button>';
+            var buttonHTMLCode = '<button name="'+'GenerateDashboardLink'+layout.qInfo.qId+'" id="generateDashboardLink'+ layout.qInfo.qId + '" class="documentChaining">'+layout.documentName+'</button>';
             $element.html(buttonHTMLCode);
 
             //If in edit mode, do nothing
@@ -178,13 +208,24 @@ define(['jquery', 'qlik', 'angular', 'ng!$q', 'css!./FEI-DocumentChaining.css'],
                                 else {
                                     //Considering it a false alarm (for example some field has actual value that follows the "x of y" pattern); activate the button
                                     var selectionPartOfURL = createSelectionsURLPart(fieldSelections,tagSeparator,valueSeparator,false);
-                                    activateButtonEvent($element,config,layout,baseURL+selectionPartOfURL.selectionURLPart);
+                                    if(layout.carrySelections){
+                                        activateButtonEvent($element,config,layout,baseURL+selectionPartOfURL.selectionURLPart);
+                                    }
+                                    else{
+                                        activateButtonEvent($element,config,layout,baseURL);
+                                    }
+
                                 }
                             }); //end of tooManySelections hypercube
                         } //end of tooManySelections possibility
                         else { 
                             //If there's no possibility of too many selections, activate the button with the selections part added to the baseURL
-                            activateButtonEvent($element,config,layout,baseURL+selectionPartOfURL.selectionURLPart);
+                            if(layout.carrySelections){
+                                activateButtonEvent($element,config,layout,baseURL+selectionPartOfURL.selectionURLPart);
+                            }
+                            else{
+                                activateButtonEvent($element,config,layout,baseURL);
+                            }
                         }
                     } //end of if split selected fields is zero
                     else{
@@ -231,8 +272,6 @@ var activateButtonEvent = function ($element,config,layout,url) {
     $("#generateDashboardLink" + layout.qInfo.qId).on('qv-activate', function () {
         var finalURL = (config.isSecure ? "https://" : "http://" ) + config.host + (config.port ? ":" + config.port : "" ) + "/" + layout.urlResolver + "?URL=" + url;
 
-        //Copying the generated link
-        var textboxReference = document.querySelector('.documentChaining');
         //Changing the button's text temporarily to mark success
         document.getElementById('generateDashboardLink' + layout.qInfo.qId).innerHTML= "Redirecting to " + layout.documentName + " app...";
         //Waiting for 1.5 seconds and resetting the button's text so that users are not discouraged to make new selections and generate new links
@@ -240,11 +279,13 @@ var activateButtonEvent = function ($element,config,layout,url) {
             document.getElementById('generateDashboardLink' + layout.qInfo.qId).innerHTML = layout.documentName;
         },1500);
 
-        textboxReference.addEventListener('click', function(event) {
-            window.location = finalURL;
-        });
-
         window.onbeforeunload = null;
+        if(layout.sameOrNewTab){
+            window.open(finalURL,'_newtab');
+        }
+        else{
+            window.location = finalURL;
+        }
         return false;
     });
     $("#generateDashboardLink" + layout.qInfo.qId).prop("disabled",false);
